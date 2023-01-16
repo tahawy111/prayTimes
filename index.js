@@ -506,3 +506,8 @@ let times = prayTimes.getTimes(
 
 // SHOW
 console.log(times);
+
+// My Prayer Times Function
+
+const getTimeZoneNumStr =
+  "+" + new Date().getTimezoneOffset() / (new Date().getTimezoneOffset() / 2);
