@@ -1,0 +1,62 @@
+const { PrayerManager } = require("prayer-times.js");
+let prayTimes = new PrayerManager("Egypt");
+let lat = 31.223;
+let lng = 30.0355;
+let times = prayTimes.getTimes(
+  new Date(),
+  [lat, lng],
+  "+" + new Date().getTimezoneOffset() / (new Date().getTimezoneOffset() / 2),
+  "auto",
+  "12h"
+); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
+
+// SHOW
+console.log(times);
+
+const DMath = {
+  dtr(d) {
+    // From degrees to radians
+    return (d * Math.PI) / 180.0;
+  },
+  rtd(r) {
+    // From radians to degrees
+    return (r * 180.0) / Math.PI;
+  },
+  sin(d) {
+    return Math.sin(this.dtr(d));
+  },
+  cos(d) {
+    return Math.cos(this.dtr(d));
+  },
+  tan(d) {
+    return Math.tan(this.dtr(d));
+  },
+  arcsin(d) {
+    return this.rtd(Math.asin(d));
+  },
+  arccos(d) {
+    return this.rtd(Math.acos(d));
+  },
+  arctan(d) {
+    return this.rtd(Math.atan(d));
+  },
+  arccot(x) {
+    return this.rtd(Math.atan(1 / x));
+  },
+  arctan2(y, x) {
+    return this.rtd(Math.atan2(y, x));
+  },
+  fixAngle(a) {
+    return this.fix(a, 360);
+  },
+  fixHour(a) {
+    return this.fix(a, 24);
+  },
+  fix(a, b) {
+    a = a - b * Math.floor(a / b);
+    return a < 0 ? a + b : a;
+  },
+};
+
+console.log(DMath.sin(90));
+console.log(DMath.sin(90));
