@@ -505,9 +505,71 @@ let times = prayTimes.getTimes(
 ); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
 
 // SHOW
-console.log(times);
+// console.log(times);
 
 // My Prayer Times Function
 
 const getTimeZoneNumStr =
   "+" + new Date().getTimezoneOffset() / (new Date().getTimezoneOffset() / 2);
+
+class AdhanJs {
+  constructor(method = "MWL") {
+    this._method = method;
+    this.methods = {
+      MWL: {
+        name: "Muslim World League",
+        params: { fajr: 18, isha: 17 },
+      },
+      ISNA: {
+        name: "Islamic Society of North America (ISNA)",
+        params: { fajr: 15, isha: 15 },
+      },
+      MF: {
+        name: "Muslims of France (MF)",
+        params: { fajr: 12, isha: 12 },
+      },
+      Egypt: {
+        name: "Egyptian General Authority of Survey",
+        params: { fajr: 19.5, isha: 17.5 },
+      },
+      Makkah: {
+        name: "Umm Al-Qura University, Makkah",
+        params: { fajr: 18.5, isha: "90 min" },
+      }, // fajr was 19 degrees before 1430 hijri
+      Karachi: {
+        name: "University of Islamic Sciences, Karachi",
+        params: { fajr: 18, isha: 18 },
+      },
+      Tehran: {
+        name: "Institute of Geophysics, University of Tehran",
+        params: { fajr: 17.7, isha: 14, maghrib: 4.5, midnight: "Jafari" },
+      }, // isha is not explicitly specified in this method
+      Jafari: {
+        name: "Shia Ithna-Ashari, Leva Institute, Qum",
+        params: { fajr: 16, isha: 14, maghrib: 4, midnight: "Jafari" },
+      },
+      JAKIM: {
+        name: "Jabatan Kemajuan Islam Malaysia",
+        params: { fajr: 20, isha: 18 },
+      },
+    };
+  }
+}
+
+/* 
+    this.lat = Number(coords[0]);
+    this.lng = Number(coords[1]);
+    this.elv = coords[2] ? Number(coords[2]) : 0;
+    this.timeFormat = format || this.timeFormat;
+    if (typeof date === "number") date = new Date(date);
+    if (date instanceof Date)
+      date = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+    if (timezone === "auto") timezone = this.getTimeZone(date);
+    if (dst === "auto") dst = this.getDst(date);
+    this.timeZone = Number(timezone) + (Number(dst) ? 1 : 0);
+    this.jDate = this.julian(date[0], date[1], date[2]) - this.lng / (15 * 24);
+
+    return this.computeTimes(date);
+*/
+
+console.log(getTimeZoneNumStr);
