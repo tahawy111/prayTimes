@@ -444,7 +444,7 @@ let PrayerTimes = function () {
 let lat = 31.223;
 let lng = 30.0355;
 let times = PrayerTimes().getTimes(
-  new Date(),
+  new Date(2023, 01, 20),
   [lat, lng],
   "auto",
   "auto",
