@@ -60,14 +60,13 @@ let PrayerTimes = function () {
     highLats: "NightMiddle",
   };
 
-  let timeFormat = "12h";
+  let timeFormat = "24h";
   let timeSuffixes = ["am", "pm"];
   let invalidTime = "-----";
 
-  let numIterations = 1;
   let offset = {};
 
-  let lat, lng, elv, timeZone, jDate;
+  let lat, lng, elv, timeZone, jDate, givenDate;
 
   let defParams = defaultParams;
   for (let i in methods) {
@@ -123,19 +122,48 @@ let PrayerTimes = function () {
 
   // return prayer times for a given date
   PrayerTimes.getTimes = function (date, coords, timezone, dst, format) {
-    lat = 1 * coords[0];
-    lng = 1 * coords[1];
-    elv = coords[2] ? 1 * coords[2] : 0;
+    lat = coords[0];
+    lng = coords[1];
+    elv = coords[2] ? coords[2] : 0;
+    givenDate = date;
+
     timeFormat = format || timeFormat;
     if (date.constructor === Date)
       date = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
     if (typeof timezone == "undefined" || timezone == "auto")
       timezone = this.getTimeZone(date);
     if (typeof dst == "undefined" || dst == "auto") dst = this.getDst(date);
-    timeZone = 1 * timezone + (1 * dst ? 1 : 0);
+    timeZone = timezone + (1 * dst ? 1 : 0);
     jDate = this.julian(date[0], date[1], date[2]) - lng / (15 * 24);
 
     return this.computeTimes();
+  };
+
+  // compute prayer times
+  PrayerTimes.computeTimes = function () {
+    // default times
+    let times = {
+      imsak: 5,
+      fajr: 5,
+      sunrise: 6,
+      dhuhr: 12,
+      asr: 13,
+      sunset: 18,
+      maghrib: 18,
+      isha: 18,
+    };
+
+    // main iterations
+    times = this.computePrayerTimes(times);
+    times = this.adjustTimes(times);
+
+    // add midnight time
+    times.midnight =
+      setting.midnight == "Jafari"
+        ? times.sunset + this.timeDiff(times.sunset, times.fajr) / 2
+        : times.sunset + this.timeDiff(times.sunset, times.sunrise) / 2;
+
+    return this.modifyFormats(times);
   };
 
   // convert float time to the given format (see timeFormats)
@@ -152,9 +180,18 @@ let PrayerTimes = function () {
       format == "24h"
         ? this.twoDigitsFormat(hours)
         : ((hours + 12 - 1) % 12) + 1;
-    return (
-      hour + ":" + this.twoDigitsFormat(minutes) + (suffix ? " " + suffix : "")
-    );
+
+    let formatedTime = (
+      hour +
+      ":" +
+      this.twoDigitsFormat(minutes) +
+      (suffix ? " " + suffix : "")
+    ).split(":");
+
+    givenDate.setHours(+formatedTime[0]);
+    givenDate.setMinutes(+formatedTime[1], 0);
+
+    return { iso: givenDate, formatedTime: formatedTime.join(":") };
   };
 
   //---------------------- Calculation Functions -----------------------
@@ -207,12 +244,10 @@ let PrayerTimes = function () {
   // convert Gregorian date to Julian day
   // Ref: Astronomical Algorithms by Jean Meeus
   PrayerTimes.julian = function (year, month, day) {
-    console.log(year, month);
     if (month <= 2) {
       year -= 1;
       month += 12;
     }
-    console.log(year, month);
 
     let A = Math.floor(year / 100);
     let B = 2 - A + Math.floor(A / 4);
@@ -254,42 +289,11 @@ let PrayerTimes = function () {
     };
   };
 
-  // compute prayer times
-  PrayerTimes.computeTimes = function () {
-    // default times
-    let times = {
-      imsak: 5,
-      fajr: 5,
-      sunrise: 6,
-      dhuhr: 12,
-      asr: 13,
-      sunset: 18,
-      maghrib: 18,
-      isha: 18,
-    };
-
-    // main iterations
-    for (let i = 1; i <= numIterations; i++)
-      times = this.computePrayerTimes(times);
-
-    times = this.adjustTimes(times);
-
-    // add midnight time
-    times.midnight =
-      setting.midnight == "Jafari"
-        ? times.sunset + this.timeDiff(times.sunset, times.fajr) / 2
-        : times.sunset + this.timeDiff(times.sunset, times.sunrise) / 2;
-
-    times = this.tuneTimes(times);
-    return this.modifyFormats(times);
-  };
-
   // adjust times
   PrayerTimes.adjustTimes = function (times) {
     let params = setting;
+    console.log(params);
     for (let i in times) times[i] += timeZone - lng / 15;
-
-    if (params.highLats != "None") times = this.adjustHighLats(times);
 
     if (this.isMin(params.imsak))
       times.imsak = times.fajr - this.eval(params.imsak) / 60;
@@ -328,53 +332,6 @@ let PrayerTimes = function () {
     return times;
   };
 
-  // adjust times for locations in higher latitudes
-  PrayerTimes.adjustHighLats = function (times) {
-    let params = setting;
-    let nightTime = this.timeDiff(times.sunset, times.sunrise);
-
-    times.imsak = this.adjustHLTime(
-      times.imsak,
-      times.sunrise,
-      this.eval(params.imsak),
-      nightTime,
-      "ccw"
-    );
-    times.fajr = this.adjustHLTime(
-      times.fajr,
-      times.sunrise,
-      this.eval(params.fajr),
-      nightTime,
-      "ccw"
-    );
-    times.isha = this.adjustHLTime(
-      times.isha,
-      times.sunset,
-      this.eval(params.isha),
-      nightTime
-    );
-    times.maghrib = this.adjustHLTime(
-      times.maghrib,
-      times.sunset,
-      this.eval(params.maghrib),
-      nightTime
-    );
-
-    return times;
-  };
-
-  // adjust a time for higher latitudes
-  PrayerTimes.adjustHLTime = function (time, base, angle, night, direction) {
-    let portion = this.nightPortion(angle, night);
-    let timeDiff =
-      direction == "ccw"
-        ? this.timeDiff(time, base)
-        : this.timeDiff(base, time);
-    if (isNaN(time) || timeDiff > portion)
-      time = base + (direction == "ccw" ? -portion : portion);
-    return time;
-  };
-
   // the night portion used for adjusting times in higher latitudes
   PrayerTimes.nightPortion = function (angle, night) {
     let method = setting.highLats;
@@ -402,7 +359,7 @@ let PrayerTimes = function () {
 
   // get daylight saving for a given date
   PrayerTimes.getDst = function (date) {
-    return 1 * (this.gmtOffset(date) != this.getTimeZone(date));
+    return this.gmtOffset(date) != this.getTimeZone(date);
   };
 
   // GMT offset for a given date
@@ -420,7 +377,7 @@ let PrayerTimes = function () {
 
   // convert given string into a number
   PrayerTimes.eval = function (str) {
-    return 1 * (str + "").split(/[^0-9.+-]/)[0];
+    return (str + "").split(/[^0-9.+-]/)[0];
   };
 
   // detect if input contains 'min'
@@ -443,13 +400,7 @@ let PrayerTimes = function () {
 
 let lat = 31.223;
 let lng = 30.0355;
-let times = PrayerTimes().getTimes(
-  new Date(2023, 01, 20),
-  [lat, lng],
-  "auto",
-  "auto",
-  "12h"
-); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
+let times = PrayerTimes().getTimes(new Date(), [lat, lng], "auto", "auto"); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
 
 console.log(times);
 
