@@ -401,5 +401,5 @@ let PrayerTimes = function () {
 let lat = 31.223;
 let lng = 30.0355;
 let times = PrayerTimes().getTimes(new Date(), [lat, lng], "auto", "auto"); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
-
+console.log(times);
 module.exports = PrayerTimes;
