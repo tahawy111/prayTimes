@@ -211,7 +211,6 @@ let PrayerTimes = function () {
       year -= 1;
       month += 12;
     }
-    console.log(year, month);
 
     let A = Math.floor(year / 100);
     let B = 2 - A + Math.floor(A / 4);
