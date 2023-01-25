@@ -1,4 +1,4 @@
-let PrayerTimes = function () {
+let PrayerTimes = function (calcMethod = "MWL") {
   let PrayerTimes = {};
 
   let DMath = require("./dmath");
@@ -50,8 +50,6 @@ let PrayerTimes = function () {
     maghrib: "0 min",
     midnight: "Standard",
   };
-
-  let calcMethod = "Egypt";
 
   let setting = {
     imsak: "10 min",
@@ -292,7 +290,6 @@ let PrayerTimes = function () {
   // adjust times
   PrayerTimes.adjustTimes = function (times) {
     let params = setting;
-    console.log(params);
     for (let i in times) times[i] += timeZone - lng / 15;
 
     if (this.isMin(params.imsak))
@@ -398,8 +395,11 @@ let PrayerTimes = function () {
   return PrayerTimes;
 };
 
-let lat = 31.223;
-let lng = 30.0355;
-let times = PrayerTimes().getTimes(new Date(), [lat, lng], "auto", "auto"); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
+// let lat = 31.223;
+// let lng = 30.0355;
+let lat = 31.95806;
+let lng = 35.93528;
+let times = PrayerTimes("Makkah").getTimes(new Date(), [lat, lng], 3); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
+
 console.log(times);
 module.exports = PrayerTimes;
