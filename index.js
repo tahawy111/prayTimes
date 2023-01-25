@@ -207,7 +207,6 @@ let PrayerTimes = function () {
   // convert Gregorian date to Julian day
   // Ref: Astronomical Algorithms by Jean Meeus
   PrayerTimes.julian = function (year, month, day) {
-    console.log(year, month);
     if (month <= 2) {
       year -= 1;
       month += 12;
