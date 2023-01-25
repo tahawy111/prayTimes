@@ -395,8 +395,11 @@ let PrayerTimes = function (calcMethod = "MWL") {
   return PrayerTimes;
 };
 
+// Egypt;
 // let lat = 31.223;
 // let lng = 30.0355;
+
+// Jordan Oman;
 let lat = 31.95806;
 let lng = 35.93528;
 let times = PrayerTimes("Makkah").getTimes(new Date(), [lat, lng], 3); // Get prayers times for "today" at lat: 43, long: -80 with -5 timezone
